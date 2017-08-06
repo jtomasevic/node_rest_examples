@@ -4,8 +4,12 @@ var app = express();
 
 var port = process.env.PORT || 3000;
 
-var fs = require('fs')
+var fs = require('fs');
 
+// import model definition for user.
+var User = require("./Models/user.js");
+// import model definition for login response.
+var LoginResponse = require("./Models/login_response.js");
 
 // use this to be able to parse json in advance. 
 // ... otherwise in request.body will not be available
@@ -22,10 +26,42 @@ loginRouter.route('/login')
         res.json({"message":"hej"});
     })
     .post(function(req,res){
-        console.log(req.body);
-        res.json({"status":"OK",
-            "roles":["Replanish", "Configuration"]
-        });
+        //var user = new u.User(req);
+        var user = new User(req);
+        var fileName = null;
+        // good case 
+        if (user.UserName == "1111"){
+            fileName = "roles_userA.json";
+        } else if (user.UserName == "2222"){
+            fileName = "roles_userB.json";
+        }
+        // good case contiune returning roles.
+        if (fileName!=null){
+            fs.readFile('sample_data/' + fileName, 'utf8', function (err,data) {
+                if (err) {
+                    return console.log(err);
+                }
+                var response = new LoginResponse(1, JSON.parse(data));
+                console.log(data);
+                res.json(response);   
+            });
+        }
+        // bas case
+        else{
+            // bad case: wrong combination of user name and password
+            if (user.UserName == "3333"){
+                var response = new LoginResponse(2, []);
+                res.json(response); 
+            }
+            // bad case 2: account is blocked
+            else{
+                var response = new LoginResponse(3, []);
+                res.json(response); 
+            }
+        }
+        // res.json({"status":"OK",
+        //     "roles":["Replanish", "Configuration"]
+        // });
     });
 
 
